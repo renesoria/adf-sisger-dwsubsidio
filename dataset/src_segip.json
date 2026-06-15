@@ -1,0 +1,60 @@
+{
+	"name": "src_segip",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "datalake_subsidio",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "src"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "segip.csv",
+				"folderPath": "segip",
+				"container": "bronze"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "CI",
+				"type": "String"
+			},
+			{
+				"name": "Nombres",
+				"type": "String"
+			},
+			{
+				"name": "Ap. Paterno",
+				"type": "String"
+			},
+			{
+				"name": "Ap. Materno",
+				"type": "String"
+			},
+			{
+				"name": "Fecha Nac.",
+				"type": "String"
+			},
+			{
+				"name": "Género",
+				"type": "String"
+			},
+			{
+				"name": "Estado Civil",
+				"type": "String"
+			},
+			{
+				"name": "Municipio",
+				"type": "String"
+			}
+		]
+	}
+}

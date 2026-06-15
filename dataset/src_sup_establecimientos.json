@@ -1,0 +1,64 @@
+{
+	"name": "src_sup_establecimientos",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "datalake_subsidio",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "src"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "sup_establecimientos.csv",
+				"folderPath": "sup",
+				"container": "bronze"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "establecimiento_id",
+				"type": "String"
+			},
+			{
+				"name": "codigo_snis",
+				"type": "String"
+			},
+			{
+				"name": "nombre",
+				"type": "String"
+			},
+			{
+				"name": "tipo",
+				"type": "String"
+			},
+			{
+				"name": "nivel_atencion",
+				"type": "String"
+			},
+			{
+				"name": "municipio",
+				"type": "String"
+			},
+			{
+				"name": "departamento",
+				"type": "String"
+			},
+			{
+				"name": "red_salud",
+				"type": "String"
+			},
+			{
+				"name": "estado",
+				"type": "String"
+			}
+		]
+	}
+}
