@@ -1199,6 +1199,76 @@
 				"[concat(variables('factoryId'), '/datasets/bronze_sup_controles')]",
 				"[concat(variables('factoryId'), '/datasets/bronze_sup_entregas')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pip_bronze')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "df_bronze",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_bronze_carga_completa",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcsegip": {},
+									"srcbjaInscripciones": {},
+									"srcBjaEstablecimientos": {},
+									"srcBjaPartos": {},
+									"srcBjaControlesPrenatales": {},
+									"srcBjaControlesPediatricos": {},
+									"srcBjaPagos": {},
+									"srcSupInscripciones": {},
+									"srcSupEstablecimientos": {},
+									"srcSupBoletas": {},
+									"srcSupCatalogoPaquetes": {},
+									"srcSupControles": {},
+									"srcSupEntregas": {},
+									"bronzeSegip": {},
+									"bjaIinscripciones": {},
+									"sinkBjaEstablecimientos": {},
+									"sinkBjaPartos": {},
+									"sinkBjaControlesPrenatales": {},
+									"sinkBjaControlesPediatricos": {},
+									"sinkBjaPagos": {},
+									"sinkSupInscripciones": {},
+									"sinkSupEstablecimientos": {},
+									"sinkSupBoletas": {},
+									"sinkSupCatalogoPaquetes": {},
+									"sinkSupControles": {},
+									"sinkSupEntregas": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_bronze_carga_completa')]"
+			]
 		}
 	]
 }
