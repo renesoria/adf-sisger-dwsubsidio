@@ -1,0 +1,65 @@
+{
+	"name": "bronze_sup_entregas",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "dw_subsidio",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "bronze"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "entrega_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "boleta_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ci_beneficiaria",
+				"type": "varchar"
+			},
+			{
+				"name": "establecimiento_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "paquete_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "paquete_nombre",
+				"type": "varchar"
+			},
+			{
+				"name": "fecha_entrega",
+				"type": "varchar"
+			},
+			{
+				"name": "lote_produccion",
+				"type": "varchar"
+			},
+			{
+				"name": "peso_paquete_kg",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "fecha_proxima_entrega",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "bronze",
+			"table": "sup_entregas"
+		}
+	}
+}
