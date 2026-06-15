@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-ucb-sisger-dwsubsidio-13353021"
+		},
+		"datalake_subsidio_connectionString": {
+			"value": ""
+		},
+		"dw_subsidio_password": {
+			"value": ""
+		},
+		"dw_subsidio_properties_typeProperties_server": {
+			"value": "sql-ucb-sisger-dwsubsidio-13353021.database.windows.net"
+		},
+		"dw_subsidio_properties_typeProperties_database": {
+			"value": "dw_subsidio"
+		},
+		"dw_subsidio_properties_typeProperties_userName": {
+			"value": "Soria"
+		}
+	}
+}
