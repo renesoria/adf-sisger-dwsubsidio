@@ -1,0 +1,52 @@
+{
+	"name": "silver_segip",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "dw_subsidio",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "silver"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CI",
+				"type": "varchar"
+			},
+			{
+				"name": "Nombres",
+				"type": "varchar"
+			},
+			{
+				"name": "Ap_Paterno",
+				"type": "varchar"
+			},
+			{
+				"name": "Ap_Materno",
+				"type": "varchar"
+			},
+			{
+				"name": "Fecha_Nac",
+				"type": "date"
+			},
+			{
+				"name": "Genero",
+				"type": "varchar"
+			},
+			{
+				"name": "Estado_Civil",
+				"type": "varchar"
+			},
+			{
+				"name": "Municipio",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "silver",
+			"table": "segip"
+		}
+	}
+}

@@ -13,7 +13,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "bja_inscripciones.csv",
+				"fileName": "bja_establecimientos_salud.csv",
 				"folderPath": "bja",
 				"container": "bronze"
 			},
