@@ -3559,6 +3559,94 @@
 				"[concat(variables('factoryId'), '/datasets/bronze_bja_controles_prenatales')]",
 				"[concat(variables('factoryId'), '/datasets/silver_bja_controles_prenatales')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_bja_controles_pediatricos')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "bronze_bja_controles_pediatricos",
+								"type": "DatasetReference"
+							},
+							"name": "srcBjaControlesPediatricos"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "silver_bja_controles_pediatricos",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpieza"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          control_pediatrico_id as integer,",
+						"          ci_nino as string,",
+						"          ci_madre as string,",
+						"          establecimiento_id as integer,",
+						"          nro_control as integer,",
+						"          fecha_control as string,",
+						"          peso_nino_kg as double,",
+						"          talla_nino_cm as double,",
+						"          vacuna_aplicada as string,",
+						"          resultado as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT control_pediatrico_id, TRIM(ci_nino) AS ci_nino, TRIM(ci_madre) AS ci_madre, establecimiento_id, nro_control, TRIM(fecha_control) AS fecha_control, peso_nino_kg, talla_nino_cm, TRIM(vacuna_aplicada) AS vacuna_aplicada, TRIM(resultado) AS resultado\\nFROM bronze.bja_controles_pediatricos\\nWHERE control_pediatrico_id IS NOT NULL',",
+						"     format: 'query') ~> srcBjaControlesPediatricos",
+						"srcBjaControlesPediatricos derive(ci_nino = regexReplace(replace(replace(toString(ci_nino),'-',''),' ',''),'^([A-Z]{2})([0-9]+)$','$2$1'),",
+						"          ci_madre = regexReplace(replace(replace(toString(ci_madre),'-',''),' ',''),'^([A-Z]{2})([0-9]+)$','$2$1'),",
+						"          fecha_control = coalesce(toDate(toString(fecha_control),'yyyy-MM-dd'),toDate(toString(fecha_control),'dd-MM-yyyy'),toDate(toString(fecha_control),'dd/MM/yyyy'),toDate(toString(fecha_control),'MM/dd/yyyy')),",
+						"          peso_nino_kg = case(toFloat(peso_nino_kg)>=2.0 && toFloat(peso_nino_kg)<=20.0, round(toFloat(peso_nino_kg),2)),",
+						"          talla_nino_cm = case(toFloat(talla_nino_cm)>=40.0 && toFloat(talla_nino_cm)<=110.0, round(toFloat(talla_nino_cm),1)),",
+						"          vacuna_aplicada = iif(instr(upper(toString(vacuna_aplicada)),'BCG')>0,'BCG',iif(instr(upper(toString(vacuna_aplicada)),'SRP')>0,'SRP 1ra dosis',iif(instr(upper(toString(vacuna_aplicada)),'ROTAV')>0,'Rotavirus 1ra dosis',iif(instr(upper(toString(vacuna_aplicada)),'ANTIPOLIO')>0 || instr(upper(toString(vacuna_aplicada)),'ANTIPOL')>0,iif(instr(toString(vacuna_aplicada),'2')>0,'Antipolio 2da dosis','Antipolio 1ra dosis'),iif(instr(upper(toString(vacuna_aplicada)),'PENTA')>0 || instr(upper(toString(vacuna_aplicada)),'PNETA')>0 || instr(upper(toString(vacuna_aplicada)),'PETNA')>0,iif(instr(toString(vacuna_aplicada),'3')>0,'Pentavalente 3ra dosis',iif(instr(toString(vacuna_aplicada),'2')>0,'Pentavalente 2da dosis','Pentavalente 1ra dosis')),toString(null())))))),",
+						"          resultado = iif(instr(upper(toString(resultado)),'NOR')>0 || instr(upper(toString(resultado)),'NOM')>0 || instr(upper(toString(resultado)),'NRM')>0,'Normal',iif(instr(upper(toString(resultado)),'DESNUT')>0,'Desnutrición Leve',iif(instr(upper(toString(resultado)),'BAJO')>0 || instr(upper(toString(resultado)),'BAOJ')>0,'Bajo Peso',toString(null()))))) ~> limpieza",
+						"limpieza sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          control_pediatrico_id as integer,",
+						"          ci_nino as string,",
+						"          ci_madre as string,",
+						"          establecimiento_id as integer,",
+						"          nro_control as integer,",
+						"          fecha_control as date,",
+						"          peso_nino_kg as double,",
+						"          talla_nino_cm as double,",
+						"          vacuna_aplicada as string,",
+						"          resultado as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/bronze_bja_controles_pediatricos')]",
+				"[concat(variables('factoryId'), '/datasets/silver_bja_controles_pediatricos')]"
+			]
 		}
 	]
 }
