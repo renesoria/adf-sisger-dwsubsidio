@@ -1091,7 +1091,7 @@
 								"referenceName": "silver_bja_controles_pediatricos",
 								"type": "DatasetReference"
 							},
-							"name": "sink1"
+							"name": "sinkBJAcontrolesPediatricos"
 						}
 					],
 					"transformations": [
@@ -1145,7 +1145,7 @@
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+						"     errorHandlingOption: 'stopOnFirstError') ~> sinkBJAcontrolesPediatricos"
 					]
 				}
 			},
