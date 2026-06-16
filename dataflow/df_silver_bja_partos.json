@@ -1,0 +1,87 @@
+{
+	"name": "df_silver_bja_partos",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_bja_partos",
+						"type": "DatasetReference"
+					},
+					"name": "srcBjaPartos"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_partos",
+						"type": "DatasetReference"
+					},
+					"name": "sinkBjaPartos"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          parto_id as integer,",
+				"          ci_madre as string,",
+				"          ci_recien_nacido as string,",
+				"          establecimiento_id as integer,",
+				"          fecha_parto as string,",
+				"          tipo_parto as string,",
+				"          peso_nacimiento_kg as double,",
+				"          talla_nacimiento_cm as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    parto_id,\\n    TRIM(ci_madre) AS ci_madre,\\n    TRIM(ci_recien_nacido) AS ci_recien_nacido,\\n    establecimiento_id,\\n    TRIM(fecha_parto) AS fecha_parto,\\n    TRIM(tipo_parto) AS tipo_parto,\\n    peso_nacimiento_kg,\\n    talla_nacimiento_cm\\nFROM bronze.bja_partos\\nWHERE parto_id IS NOT NULL',",
+				"     format: 'query') ~> srcBjaPartos",
+				"srcBjaPartos derive(tipo_parto = iif(substring(upper(trim(toString(tipo_parto))),1,1)=='N','Natural',iif(substring(upper(trim(toString(tipo_parto))),1,1)=='C','Cesárea',toString(null()))),",
+				"          ci_madre = regexReplace(replace(replace(toString(ci_madre),'-',''),' ',''),'^([A-Z]{2})([0-9]+)$','$2$1'),",
+				"          ci_recien_nacido = regexReplace(replace(replace(toString(ci_recien_nacido),'-',''),' ',''),'^([A-Z]{2})([0-9]+)$','$2$1'),",
+				"          fecha_parto = coalesce(toDate(toString(fecha_parto),'yyyy-MM-dd'),toDate(toString(fecha_parto),'dd-MM-yyyy'),toDate(toString(fecha_parto),'dd/MM/yyyy'),toDate(toString(fecha_parto),'MM/dd/yyyy')),",
+				"          peso_nacimiento_kg = iif(toFloat(peso_nacimiento_kg)>=1.0 && toFloat(peso_nacimiento_kg)<=6.0,toFloat(peso_nacimiento_kg),toFloat(null())),",
+				"          talla_nacimiento_cm = iif(toFloat(talla_nacimiento_cm)>=40.0 && toFloat(talla_nacimiento_cm)<=60.0,toFloat(talla_nacimiento_cm),toFloat(null()))) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          parto_id as integer,",
+				"          ci_madre as string,",
+				"          ci_recien_nacido as string,",
+				"          establecimiento_id as integer,",
+				"          fecha_parto as date,",
+				"          tipo_parto as string,",
+				"          peso_nacimiento_kg as double,",
+				"          talla_nacimiento_cm as double",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          parto_id,",
+				"          ci_madre,",
+				"          ci_recien_nacido,",
+				"          establecimiento_id,",
+				"          fecha_parto,",
+				"          tipo_parto,",
+				"          peso_nacimiento_kg,",
+				"          talla_nacimiento_cm",
+				"     )) ~> sinkBjaPartos"
+			]
+		}
+	}
+}

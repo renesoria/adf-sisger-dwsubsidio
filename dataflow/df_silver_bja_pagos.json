@@ -1,0 +1,87 @@
+{
+	"name": "df_silver_bja_pagos",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_bja_pagos",
+						"type": "DatasetReference"
+					},
+					"name": "srcBjaPagos"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_pagos",
+						"type": "DatasetReference"
+					},
+					"name": "sinkBjaPagos"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          pago_id as integer,",
+				"          ci_beneficiaria as string,",
+				"          concepto_pago as string,",
+				"          monto_bs as double,",
+				"          fecha_pago as string,",
+				"          estado_pago as string,",
+				"          canal_pago as string,",
+				"          nro_comprobante as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT pago_id, ci_beneficiaria, concepto_pago, monto_bs, fecha_pago, estado_pago, canal_pago, nro_comprobante\\nFROM bronze.bja_pagos\\nWHERE pago_id IS NOT NULL',",
+				"     format: 'query') ~> srcBjaPagos",
+				"srcBjaPagos derive(ci_beneficiaria = regexReplace(replace(replace(toString(ci_beneficiaria),'-',''),' ',''),'^([A-Z]{2})([0-9]+)$','$2$1'),",
+				"          concepto_pago = iif(instr(upper(toString(concepto_pago)),'PART')>0,'Parto Institucional',iif(instr(upper(toString(concepto_pago)),'INSTIT')>0,'Parto Institucional',iif(instr(toString(concepto_pago),'4')>0,'Control Prenatal 4',iif(instr(toString(concepto_pago),'3')>0,'Control Prenatal 3',iif(instr(toString(concepto_pago),'2')>0,'Control Prenatal 2',iif(instr(toString(concepto_pago),'1')>0,'Control Prenatal 1',toString(null()))))))),",
+				"          monto_bs = round(toFloat(monto_bs),2),",
+				"          fecha_pago = coalesce(toDate(toString(fecha_pago),'yyyy-MM-dd'),toDate(toString(fecha_pago),'dd-MM-yyyy'),toDate(toString(fecha_pago),'dd/MM/yyyy'),toDate(toString(fecha_pago),'MM/dd/yyyy')),",
+				"          estado_pago = iif(instr(upper(trim(toString(estado_pago))),'PAG')>0,'Pagado',iif(instr(upper(trim(toString(estado_pago))),'PEND')>0,'Pendiente',iif(instr(upper(trim(toString(estado_pago))),'ANUL')>0,'Anulado',toString(null())))),",
+				"          canal_pago = iif(instr(upper(replace(toString(canal_pago),' ','')),'BANC')>0,'Banco Unión',iif(instr(upper(replace(toString(canal_pago),' ','')),'MOV')>0,'Pago Móvil',iif(instr(upper(replace(toString(canal_pago),' ','')),'MÓV')>0,'Pago Móvil',iif(instr(upper(replace(toString(canal_pago),' ','')),'TRANS')>0,'Transferencia Bancaria',iif(instr(upper(replace(toString(canal_pago),' ','')),'TARN')>0,'Transferencia Bancaria',toString(null()))))))) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          pago_id as integer,",
+				"          ci_beneficiaria as string,",
+				"          concepto_pago as string,",
+				"          monto_bs as double,",
+				"          fecha_pago as date,",
+				"          estado_pago as string,",
+				"          canal_pago as string,",
+				"          nro_comprobante as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          pago_id,",
+				"          ci_beneficiaria,",
+				"          concepto_pago,",
+				"          monto_bs,",
+				"          fecha_pago,",
+				"          estado_pago,",
+				"          canal_pago,",
+				"          nro_comprobante",
+				"     )) ~> sinkBjaPagos"
+			]
+		}
+	}
+}
