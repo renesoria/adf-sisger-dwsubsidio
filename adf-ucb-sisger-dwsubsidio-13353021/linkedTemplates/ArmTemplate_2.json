@@ -13,6 +13,73 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/src_sup_establecimientos')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "datalake_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "src"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "sup_establecimientos.csv",
+						"folderPath": "sup",
+						"container": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "establecimiento_id",
+						"type": "String"
+					},
+					{
+						"name": "codigo_snis",
+						"type": "String"
+					},
+					{
+						"name": "nombre",
+						"type": "String"
+					},
+					{
+						"name": "tipo",
+						"type": "String"
+					},
+					{
+						"name": "nivel_atencion",
+						"type": "String"
+					},
+					{
+						"name": "municipio",
+						"type": "String"
+					},
+					{
+						"name": "departamento",
+						"type": "String"
+					},
+					{
+						"name": "red_salud",
+						"type": "String"
+					},
+					{
+						"name": "estado",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/src_sup_inscripciones')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -787,7 +854,8 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/src_sup_inscripciones')]"
+				"[concat(variables('factoryId'), '/datasets/src_sup_inscripciones')]",
+				"[concat(variables('factoryId'), '/datasets/src_sup_establecimientos')]"
 			]
 		},
 		{
@@ -1146,6 +1214,165 @@
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     errorHandlingOption: 'stopOnFirstError') ~> sinkBJAcontrolesPediatricos"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_bja_establecimientos')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "bronze_bja_establecimientos",
+								"type": "DatasetReference"
+							},
+							"name": "srcBjaEstablecimientos"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "silver_bja_establecimientos",
+								"type": "DatasetReference"
+							},
+							"name": "sinkBjaEstablecimientos"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpieza"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          establecimiento_id as integer,",
+						"          codigo_snis as string,",
+						"          nombre as string,",
+						"          tipo as string,",
+						"          nivel_atencion as string,",
+						"          municipio as string,",
+						"          departamento as string,",
+						"          red_salud as string,",
+						"          estado as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    establecimiento_id,\\n    TRIM(codigo_snis) AS codigo_snis,\\n    TRIM(nombre) AS nombre,\\n    TRIM(tipo) AS tipo,\\n    TRIM(nivel_atencion) AS nivel_atencion,\\n    TRIM(municipio) AS municipio,\\n    TRIM(departamento) AS departamento,\\n    TRIM(red_salud) AS red_salud,\\n    TRIM(estado) AS estado\\nFROM bronze.bja_establecimientos_salud\\nWHERE establecimiento_id IS NOT NULL',",
+						"     format: 'query') ~> srcBjaEstablecimientos",
+						"srcBjaEstablecimientos derive(departamento = case(upper(toString(departamento))=='LP' || upper(toString(departamento))=='LA PAZ','La Paz',case(upper(toString(departamento))=='CB' || upper(toString(departamento))=='COCHABAMBA','Cochabamba',case(upper(toString(departamento))=='SC' || upper(toString(departamento))=='SANTA CRUZ','Santa Cruz',case(upper(toString(departamento))=='OR' || upper(toString(departamento))=='ORURO','Oruro',case(upper(toString(departamento))=='PT' || upper(toString(departamento))=='POTOSI','Potosí',case(upper(toString(departamento))=='TJ' || upper(toString(departamento))=='TARIJA','Tarija',case(upper(toString(departamento))=='CH' || upper(toString(departamento))=='CHUQUISACA','Chuquisaca',case(upper(toString(departamento))=='BN' || upper(toString(departamento))=='BENI','Beni',case(upper(toString(departamento))=='PD' || upper(toString(departamento))=='PANDO','Pando',toString(departamento)))))))))),",
+						"          sistema = 'BJA') ~> limpieza",
+						"limpieza sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          establecimiento_id as integer,",
+						"          sistema as string,",
+						"          codigo_snis as string,",
+						"          nombre as string,",
+						"          tipo as string,",
+						"          nivel_atencion as string,",
+						"          municipio as string,",
+						"          departamento as string,",
+						"          red_salud as string,",
+						"          estado as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sinkBjaEstablecimientos"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_bja_inscripciones')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "bronze_bja_inscripciones",
+								"type": "DatasetReference"
+							},
+							"name": "srcBjaInscripciones"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "silver_bja_inscripciones",
+								"type": "DatasetReference"
+							},
+							"name": "sinkBjaInscripciones"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpieza"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          inscripcion_id as integer,",
+						"          ci_beneficiaria as string,",
+						"          establecimiento_id as integer,",
+						"          fecha_inscripcion as string,",
+						"          semana_gestacion as integer,",
+						"          estado as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    inscripcion_id,\\n    TRIM(ci_beneficiaria) AS ci_beneficiaria,\\n    establecimiento_id,\\n    TRIM(fecha_inscripcion) AS fecha_inscripcion,\\n    semana_gestacion,\\n    TRIM(estado) AS estado\\nFROM bronze.bja_inscripciones\\nWHERE inscripcion_id IS NOT NULL',",
+						"     format: 'query') ~> srcBjaInscripciones",
+						"srcBjaInscripciones derive(ci_beneficiaria = regexReplace(replace(replace(toString(ci_beneficiaria),'-',''),' ',''),'^([A-Z]{2})([0-9]+)$','$2$1'),",
+						"          fecha_inscripcion = coalesce(toDate(toString(fecha_inscripcion),'yyyy-MM-dd'),toDate(toString(fecha_inscripcion),'dd-MM-yyyy'),toDate(toString(fecha_inscripcion),'dd/MM/yyyy'),toDate(toString(fecha_inscripcion),'MM/dd/yyyy'))) ~> limpieza",
+						"limpieza sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          inscripcion_id as integer,",
+						"          ci_beneficiaria as string,",
+						"          establecimiento_id as integer,",
+						"          fecha_inscripcion as date,",
+						"          semana_gestacion as integer,",
+						"          estado as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          inscripcion_id,",
+						"          ci_beneficiaria,",
+						"          establecimiento_id,",
+						"          fecha_inscripcion,",
+						"          semana_gestacion,",
+						"          estado",
+						"     )) ~> sinkBjaInscripciones"
 					]
 				}
 			},
