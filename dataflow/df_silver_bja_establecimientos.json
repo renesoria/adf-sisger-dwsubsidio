@@ -1,0 +1,76 @@
+{
+	"name": "df_silver_bja_establecimientos",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_bja_establecimientos",
+						"type": "DatasetReference"
+					},
+					"name": "srcBjaEstablecimientos"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_establecimientos",
+						"type": "DatasetReference"
+					},
+					"name": "sinkBjaEstablecimientos"
+				}
+			],
+			"transformations": [
+				{
+					"name": "limpieza"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          establecimiento_id as integer,",
+				"          codigo_snis as string,",
+				"          nombre as string,",
+				"          tipo as string,",
+				"          nivel_atencion as string,",
+				"          municipio as string,",
+				"          departamento as string,",
+				"          red_salud as string,",
+				"          estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    establecimiento_id,\\n    TRIM(codigo_snis) AS codigo_snis,\\n    TRIM(nombre) AS nombre,\\n    TRIM(tipo) AS tipo,\\n    TRIM(nivel_atencion) AS nivel_atencion,\\n    TRIM(municipio) AS municipio,\\n    TRIM(departamento) AS departamento,\\n    TRIM(red_salud) AS red_salud,\\n    TRIM(estado) AS estado\\nFROM bronze.bja_establecimientos_salud\\nWHERE establecimiento_id IS NOT NULL',",
+				"     format: 'query') ~> srcBjaEstablecimientos",
+				"srcBjaEstablecimientos derive(departamento = case(upper(toString(departamento))=='LP' || upper(toString(departamento))=='LA PAZ','La Paz',case(upper(toString(departamento))=='CB' || upper(toString(departamento))=='COCHABAMBA','Cochabamba',case(upper(toString(departamento))=='SC' || upper(toString(departamento))=='SANTA CRUZ','Santa Cruz',case(upper(toString(departamento))=='OR' || upper(toString(departamento))=='ORURO','Oruro',case(upper(toString(departamento))=='PT' || upper(toString(departamento))=='POTOSI','Potosí',case(upper(toString(departamento))=='TJ' || upper(toString(departamento))=='TARIJA','Tarija',case(upper(toString(departamento))=='CH' || upper(toString(departamento))=='CHUQUISACA','Chuquisaca',case(upper(toString(departamento))=='BN' || upper(toString(departamento))=='BENI','Beni',case(upper(toString(departamento))=='PD' || upper(toString(departamento))=='PANDO','Pando',toString(departamento)))))))))),",
+				"          sistema = 'BJA') ~> limpieza",
+				"limpieza sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          establecimiento_id as integer,",
+				"          sistema as string,",
+				"          codigo_snis as string,",
+				"          nombre as string,",
+				"          tipo as string,",
+				"          nivel_atencion as string,",
+				"          municipio as string,",
+				"          departamento as string,",
+				"          red_salud as string,",
+				"          estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinkBjaEstablecimientos"
+			]
+		}
+	}
+}

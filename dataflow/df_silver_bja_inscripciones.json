@@ -1,0 +1,77 @@
+{
+	"name": "df_silver_bja_inscripciones",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_bja_inscripciones",
+						"type": "DatasetReference"
+					},
+					"name": "srcBjaInscripciones"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_inscripciones",
+						"type": "DatasetReference"
+					},
+					"name": "sinkBjaInscripciones"
+				}
+			],
+			"transformations": [
+				{
+					"name": "limpieza"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          inscripcion_id as integer,",
+				"          ci_beneficiaria as string,",
+				"          establecimiento_id as integer,",
+				"          fecha_inscripcion as string,",
+				"          semana_gestacion as integer,",
+				"          estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    inscripcion_id,\\n    TRIM(ci_beneficiaria) AS ci_beneficiaria,\\n    establecimiento_id,\\n    TRIM(fecha_inscripcion) AS fecha_inscripcion,\\n    semana_gestacion,\\n    TRIM(estado) AS estado\\nFROM bronze.bja_inscripciones\\nWHERE inscripcion_id IS NOT NULL',",
+				"     format: 'query') ~> srcBjaInscripciones",
+				"srcBjaInscripciones derive(ci_beneficiaria = regexReplace(replace(replace(toString(ci_beneficiaria),'-',''),' ',''),'^([A-Z]{2})([0-9]+)$','$2$1'),",
+				"          fecha_inscripcion = coalesce(toDate(toString(fecha_inscripcion),'yyyy-MM-dd'),toDate(toString(fecha_inscripcion),'dd-MM-yyyy'),toDate(toString(fecha_inscripcion),'dd/MM/yyyy'),toDate(toString(fecha_inscripcion),'MM/dd/yyyy'))) ~> limpieza",
+				"limpieza sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          inscripcion_id as integer,",
+				"          ci_beneficiaria as string,",
+				"          establecimiento_id as integer,",
+				"          fecha_inscripcion as date,",
+				"          semana_gestacion as integer,",
+				"          estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          inscripcion_id,",
+				"          ci_beneficiaria,",
+				"          establecimiento_id,",
+				"          fecha_inscripcion,",
+				"          semana_gestacion,",
+				"          estado",
+				"     )) ~> sinkBjaInscripciones"
+			]
+		}
+	}
+}
