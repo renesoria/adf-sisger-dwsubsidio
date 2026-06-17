@@ -1,0 +1,72 @@
+{
+	"name": "df_silver_segip",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_segip",
+						"type": "DatasetReference"
+					},
+					"name": "srcSegip"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_segip",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSegip"
+				}
+			],
+			"transformations": [
+				{
+					"name": "limpieza"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CI as string,",
+				"          Nombres as string,",
+				"          Ap_Paterno as string,",
+				"          Ap_Materno as string,",
+				"          Fecha_Nac as string,",
+				"          Genero as string,",
+				"          Estado_Civil as string,",
+				"          Municipio as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    TRIM(CI) AS CI,\\n    TRIM(Nombres) AS Nombres,\\n    TRIM(Ap_Paterno) AS Ap_Paterno,\\n    TRIM(Ap_Materno) AS Ap_Materno,\\n    TRIM(Fecha_Nac) AS Fecha_Nac,\\n    TRIM(Genero) AS Genero,\\n    TRIM(Estado_Civil) AS Estado_Civil,\\n    TRIM(Municipio) AS Municipio\\nFROM bronze.segip\\nWHERE CI IS NOT NULL',",
+				"     format: 'query') ~> srcSegip",
+				"srcSegip derive(Fecha_Nac = coalesce(toDate(toString(Fecha_Nac),'dd/MM/yyyy'),toDate(toString(Fecha_Nac),'yyyy-MM-dd'),toDate(toString(Fecha_Nac),'dd-MM-yyyy'),toDate(toString(Fecha_Nac),'MM/dd/yyyy'))) ~> limpieza",
+				"limpieza sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CI as string,",
+				"          Nombres as string,",
+				"          Ap_Paterno as string,",
+				"          Ap_Materno as string,",
+				"          Fecha_Nac as date,",
+				"          Genero as string,",
+				"          Estado_Civil as string,",
+				"          Municipio as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinkSegip"
+			]
+		}
+	}
+}

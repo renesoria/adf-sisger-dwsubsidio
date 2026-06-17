@@ -1,0 +1,66 @@
+{
+	"name": "df_silver_sup_catalogopaquetes",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_sup_catalogopaquetes",
+						"type": "DatasetReference"
+					},
+					"name": "srcSupCatalogoPaquetes"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_sup_catalogopaquetes",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSupCatalogoPaquetes"
+				}
+			],
+			"transformations": [
+				{
+					"name": "limpieza"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          paquete_id as integer,",
+				"          nombre as string,",
+				"          contenido as string,",
+				"          peso_estandar_kg as double,",
+				"          costo_estimado_bs as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    paquete_id,\\n    REPLACE(TRIM(nombre),\\'\"\\',\\'\\') AS nombre,\\n    REPLACE(TRIM(contenido),\\'\"\\',\\'\\') AS contenido,\\n    peso_estandar_kg,\\n    costo_estimado_bs\\nFROM bronze.sup_catalogopaquetes\\nWHERE paquete_id IS NOT NULL',",
+				"     format: 'query') ~> srcSupCatalogoPaquetes",
+				"srcSupCatalogoPaquetes derive(peso_estandar_kg = round(toFloat(peso_estandar_kg),2)) ~> limpieza",
+				"limpieza sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          paquete_id as integer,",
+				"          nombre as string,",
+				"          contenido as string,",
+				"          peso_estandar_kg as double,",
+				"          costo_estimado_bs as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinkSupCatalogoPaquetes"
+			]
+		}
+	}
+}

@@ -1,0 +1,70 @@
+{
+	"name": "df_silver_sup_inscripciones",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_sup_inscripciones",
+						"type": "DatasetReference"
+					},
+					"name": "srcSupInscripciones"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_sup_inscripciones",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSupInscripciones"
+				}
+			],
+			"transformations": [
+				{
+					"name": "limpieza"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          inscripcion_id as integer,",
+				"          ci_beneficiaria as string,",
+				"          establecimiento_id as integer,",
+				"          fecha_inscripcion as string,",
+				"          semana_gestacion as integer,",
+				"          estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    inscripcion_id,\\n    REPLACE(REPLACE(TRIM(ci_beneficiaria),\\'\"\\',\\'\\'),\\' \\',\\'\\') AS ci_beneficiaria,\\n    establecimiento_id,\\n    REPLACE(TRIM(fecha_inscripcion),\\'\"\\',\\'\\') AS fecha_inscripcion,\\n    semana_gestacion,\\n    REPLACE(TRIM(estado),\\'\"\\',\\'\\') AS estado\\nFROM bronze.sup_inscripciones\\nWHERE inscripcion_id IS NOT NULL',",
+				"     format: 'query') ~> srcSupInscripciones",
+				"srcSupInscripciones derive(ci_beneficiaria = upper(regexReplace(replace(replace(toString(ci_beneficiaria),'-',''),' ',''),'^([A-Za-z]{2})([0-9]+)$','$2$1')),",
+				"          fecha_inscripcion = coalesce(toDate(toString(fecha_inscripcion),'yyyy-MM-dd'),toDate(toString(fecha_inscripcion),'dd-MM-yyyy'),toDate(toString(fecha_inscripcion),'dd/MM/yyyy'),toDate(toString(fecha_inscripcion),'MM/dd/yyyy')),",
+				"          estado = iif(instr(upper(toString(estado)),'COMPL')>0,'Completada',iif(instr(upper(toString(estado)),'INACT')>0,'Inactiva',iif(instr(upper(toString(estado)),'ACTIV')>0,'Activa',toString(null()))))) ~> limpieza",
+				"limpieza sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          inscripcion_id as integer,",
+				"          ci_beneficiaria as string,",
+				"          establecimiento_id as integer,",
+				"          fecha_inscripcion as date,",
+				"          semana_gestacion as integer,",
+				"          estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinkSupInscripciones"
+			]
+		}
+	}
+}
