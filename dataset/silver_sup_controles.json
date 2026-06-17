@@ -41,8 +41,9 @@
 			},
 			{
 				"name": "peso_madre_kg",
-				"type": "float",
-				"precision": 15
+				"type": "decimal",
+				"precision": 5,
+				"scale": 1
 			},
 			{
 				"name": "presion_sistolica",

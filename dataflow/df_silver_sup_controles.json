@@ -1,0 +1,89 @@
+{
+	"name": "df_silver_sup_controles",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_sup_controles",
+						"type": "DatasetReference"
+					},
+					"name": "srcSupControles"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_sup_controles",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSupControles"
+				}
+			],
+			"transformations": [
+				{
+					"name": "limpieza"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          control_id as integer,",
+				"          ci_beneficiaria as string,",
+				"          establecimiento_id as integer,",
+				"          nro_control as integer,",
+				"          fecha_control as string,",
+				"          semana_gestacion as double,",
+				"          peso_madre_kg as double,",
+				"          presion_arterial as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    control_id,\\n    REPLACE(REPLACE(TRIM(ci_beneficiaria),\\'\"\\',\\'\\'),\\' \\',\\'\\') AS ci_beneficiaria,\\n    establecimiento_id,\\n    nro_control,\\n    REPLACE(TRIM(fecha_control),\\'\"\\',\\'\\') AS fecha_control,\\n    semana_gestacion,\\n    peso_madre_kg,\\n    REPLACE(TRIM(presion_arterial),\\'\"\\',\\'\\') AS presion_arterial\\nFROM bronze.sup_controles\\nWHERE control_id IS NOT NULL',",
+				"     format: 'query') ~> srcSupControles",
+				"srcSupControles derive(ci_beneficiaria = upper(regexReplace(replace(replace(toString(ci_beneficiaria),'-',''),' ',''),'^([A-Za-z]{2})([0-9]+)$','$2$1')),",
+				"          fecha_control = coalesce(toDate(toString(fecha_control),'yyyy-MM-dd'),toDate(toString(fecha_control),'dd-MM-yyyy'),toDate(toString(fecha_control),'dd/MM/yyyy'),toDate(toString(fecha_control),'MM/dd/yyyy')),",
+				"          semana_gestacion = case(toFloat(semana_gestacion)>=1.0 && toFloat(semana_gestacion)<=42.0, toFloat(semana_gestacion)),",
+				"          peso_madre_kg = case(toFloat(peso_madre_kg)>=35.0 && toFloat(peso_madre_kg)<=200.0, round(toFloat(peso_madre_kg),1)),",
+				"          {presion_sistolica } = toInteger(trim(split(toString(presion_arterial),'/')[1])),",
+				"          presion_diastolica = toInteger(trim(split(toString(presion_arterial),'/')[2]))) ~> limpieza",
+				"limpieza sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          control_id as integer,",
+				"          ci_beneficiaria as string,",
+				"          establecimiento_id as integer,",
+				"          nro_control as integer,",
+				"          fecha_control as date,",
+				"          semana_gestacion as double,",
+				"          peso_madre_kg as decimal(5,1),",
+				"          presion_sistolica as integer,",
+				"          presion_diastolica as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          control_id,",
+				"          ci_beneficiaria,",
+				"          establecimiento_id,",
+				"          nro_control,",
+				"          fecha_control,",
+				"          semana_gestacion,",
+				"          peso_madre_kg,",
+				"          presion_sistolica = {presion_sistolica },",
+				"          presion_diastolica",
+				"     )) ~> sinkSupControles"
+			]
+		}
+	}
+}
