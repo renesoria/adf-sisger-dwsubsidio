@@ -12,35 +12,48 @@
 		"type": "AzureSqlTable",
 		"schema": [
 			{
-				"name": "CI",
+				"name": "ci",
 				"type": "varchar"
 			},
 			{
-				"name": "Nombres",
+				"name": "nombres",
 				"type": "varchar"
 			},
 			{
-				"name": "Ap_Paterno",
+				"name": "apellido_paterno",
 				"type": "varchar"
 			},
 			{
-				"name": "Ap_Materno",
+				"name": "apellido_materno",
 				"type": "varchar"
 			},
 			{
-				"name": "Fecha_Nac",
+				"name": "fecha_nacimiento",
 				"type": "date"
 			},
 			{
-				"name": "Genero",
+				"name": "genero",
 				"type": "varchar"
 			},
 			{
-				"name": "Estado_Civil",
+				"name": "estado_civil",
 				"type": "varchar"
 			},
 			{
-				"name": "Municipio",
+				"name": "numero_hijos",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "profesion",
+				"type": "varchar"
+			},
+			{
+				"name": "nivel_estudios",
+				"type": "varchar"
+			},
+			{
+				"name": "municipio_residencia",
 				"type": "varchar"
 			}
 		],

@@ -1,34 +1,30 @@
 {
-	"name": "df_silver_segip",
+	"name": "df_bronze_segip",
 	"properties": {
 		"folder": {
-			"name": "silver"
+			"name": "bronze"
 		},
 		"type": "MappingDataFlow",
 		"typeProperties": {
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "bronze_segip",
+						"referenceName": "src_segip",
 						"type": "DatasetReference"
 					},
-					"name": "srcSegip"
+					"name": "source1"
 				}
 			],
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "silver_segip",
+						"referenceName": "bronze_segip",
 						"type": "DatasetReference"
 					},
-					"name": "sinkSegip"
+					"name": "bronzesegip"
 				}
 			],
-			"transformations": [
-				{
-					"name": "limpieza"
-				}
-			],
+			"transformations": [],
 			"scriptLines": [
 				"source(output(",
 				"          ci as string,",
@@ -38,31 +34,36 @@
 				"          fecha_nacimiento as string,",
 				"          genero as string,",
 				"          estado_civil as string,",
-				"          numero_hijos as integer,",
+				"          ci_conyuge as string,",
+				"          numero_hijos as string,",
+				"          ci_padre as string,",
+				"          ci_madre as string,",
 				"          profesion as string,",
 				"          nivel_estudios as string,",
-				"          municipio_residencia as string",
+				"          municipio_residencia as string,",
+				"          fecha_emision as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT\\n    TRIM(ci) AS ci,\\n    TRIM(nombres) AS nombres,\\n    TRIM(apellido_paterno) AS apellido_paterno,\\n    TRIM(apellido_materno) AS apellido_materno,\\n    TRIM(fecha_nacimiento) AS fecha_nacimiento,\\n    TRIM(genero) AS genero,\\n    TRIM(estado_civil) AS estado_civil,\\n    numero_hijos,\\n    TRIM(profesion) AS profesion,\\n    TRIM(nivel_estudios) AS nivel_estudios,\\n    TRIM(municipio_residencia) AS municipio_residencia\\nFROM bronze.segip\\nWHERE ci IS NOT NULL',",
-				"     format: 'query') ~> srcSegip",
-				"srcSegip derive(fecha_nacimiento = coalesce(toDate(toString(fecha_nacimiento),'yyyy-MM-dd'),toDate(toString(fecha_nacimiento),'dd/MM/yyyy'),toDate(toString(fecha_nacimiento),'dd-MM-yyyy'))) ~> limpieza",
-				"limpieza sink(allowSchemaDrift: true,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          ci as string,",
 				"          nombres as string,",
 				"          apellido_paterno as string,",
 				"          apellido_materno as string,",
-				"          fecha_nacimiento as date,",
+				"          fecha_nacimiento as string,",
 				"          genero as string,",
 				"          estado_civil as string,",
+				"          ci_conyuge as string,",
 				"          numero_hijos as integer,",
+				"          ci_padre as string,",
+				"          ci_madre as string,",
 				"          profesion as string,",
 				"          nivel_estudios as string,",
-				"          municipio_residencia as string",
+				"          municipio_residencia as string,",
+				"          fecha_emision as string",
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -71,7 +72,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> sinkSegip"
+				"     errorHandlingOption: 'stopOnFirstError') ~> bronzesegip"
 			]
 		}
 	}

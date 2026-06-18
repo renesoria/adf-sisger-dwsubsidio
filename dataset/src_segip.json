@@ -13,7 +13,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "segip.csv",
+				"fileName": "segip_personas.csv",
 				"folderPath": "segip",
 				"container": "bronze"
 			},
@@ -24,35 +24,63 @@
 		},
 		"schema": [
 			{
-				"name": "CI",
+				"name": "ci",
 				"type": "String"
 			},
 			{
-				"name": "Nombres",
+				"name": "nombres",
 				"type": "String"
 			},
 			{
-				"name": "Ap. Paterno",
+				"name": "apellido_paterno",
 				"type": "String"
 			},
 			{
-				"name": "Ap. Materno",
+				"name": "apellido_materno",
 				"type": "String"
 			},
 			{
-				"name": "Fecha Nac.",
+				"name": "fecha_nacimiento",
 				"type": "String"
 			},
 			{
-				"name": "Género",
+				"name": "genero",
 				"type": "String"
 			},
 			{
-				"name": "Estado Civil",
+				"name": "estado_civil",
 				"type": "String"
 			},
 			{
-				"name": "Municipio",
+				"name": "ci_conyuge",
+				"type": "String"
+			},
+			{
+				"name": "numero_hijos",
+				"type": "String"
+			},
+			{
+				"name": "ci_padre",
+				"type": "String"
+			},
+			{
+				"name": "ci_madre",
+				"type": "String"
+			},
+			{
+				"name": "profesion",
+				"type": "String"
+			},
+			{
+				"name": "nivel_estudios",
+				"type": "String"
+			},
+			{
+				"name": "municipio_residencia",
+				"type": "String"
+			},
+			{
+				"name": "fecha_emision",
 				"type": "String"
 			}
 		]

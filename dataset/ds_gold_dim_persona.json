@@ -52,6 +52,19 @@
 			{
 				"name": "municipio",
 				"type": "varchar"
+			},
+			{
+				"name": "numero_hijos",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "profesion",
+				"type": "varchar"
+			},
+			{
+				"name": "nivel_estudios",
+				"type": "varchar"
 			}
 		],
 		"typeProperties": {

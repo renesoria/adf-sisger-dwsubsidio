@@ -1,0 +1,90 @@
+{
+	"name": "df_gold_dim_persona",
+	"properties": {
+		"folder": {
+			"name": "gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "silver_segip",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_dim_persona",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          ci as string,",
+				"          nombres as string,",
+				"          ap_paterno as string,",
+				"          ap_materno as string,",
+				"          fecha_nac as date,",
+				"          edad as integer,",
+				"          genero as string,",
+				"          estado_civil as string,",
+				"          municipio as string,",
+				"          numero_hijos as integer,",
+				"          profesion as string,",
+				"          nivel_estudios as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    p.ci,\\n    s.nombres,\\n    s.apellido_paterno AS ap_paterno,\\n    s.apellido_materno AS ap_materno,\\n    s.fecha_nacimiento AS fecha_nac,\\n    CASE WHEN s.fecha_nacimiento IS NOT NULL \\n         THEN DATEDIFF(YEAR, s.fecha_nacimiento, GETDATE()) \\n         ELSE NULL END AS edad,s.genero, s.estado_civil, s.municipio_residencia AS municipio,   s.numero_hijos,   s.profesion,s.nivel_estudios\\nFROM (\\n    SELECT ci FROM silver.segip WHERE ci IS NOT NULL\\n    UNION\\n    SELECT ci_beneficiaria FROM silver.bja_inscripciones WHERE ci_beneficiaria IS NOT NULL\\n    UNION\\n    SELECT ci_madre FROM silver.bja_partos WHERE ci_madre IS NOT NULL\\n    UNION\\n    SELECT ci_recien_nacido FROM silver.bja_partos WHERE ci_recien_nacido IS NOT NULL\\n    UNION\\n    SELECT ci_beneficiaria FROM silver.bja_controles_prenatales WHERE ci_beneficiaria IS NOT NULL\\n    UNION\\n    SELECT ci_nino FROM silver.bja_controles_pediatricos WHERE ci_nino IS NOT NULL\\n    UNION\\n    SELECT ci_madre FROM silver.bja_controles_pediatricos WHERE ci_madre IS NOT NULL\\n    UNION\\n    SELECT ci_beneficiaria FROM silver.bja_pagos WHERE ci_beneficiaria IS NOT NULL\\n    UNION\\n    SELECT ci_beneficiaria FROM silver.sup_inscripciones WHERE ci_beneficiaria IS NOT NULL\\n    UNION\\n    SELECT ci_beneficiaria FROM silver.sup_controles WHERE ci_beneficiaria IS NOT NULL\\n    UNION\\n    SELECT ci_beneficiaria FROM silver.sup_boletas WHERE ci_beneficiaria IS NOT NULL\\n    UNION\\n    SELECT ci_beneficiaria FROM silver.sup_entregas WHERE ci_beneficiaria IS NOT NULL\\n) p\\nLEFT JOIN silver.segip s ON p.ci = s.ci',",
+				"     format: 'query') ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          persona_id as integer,",
+				"          ci as string,",
+				"          nombres as string,",
+				"          ap_paterno as string,",
+				"          ap_materno as string,",
+				"          fecha_nac as date,",
+				"          edad as integer,",
+				"          genero as string,",
+				"          estado_civil as string,",
+				"          municipio as string,",
+				"          numero_hijos as integer,",
+				"          profesion as string,",
+				"          nivel_estudios as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ci,",
+				"          nombres,",
+				"          ap_paterno,",
+				"          ap_materno,",
+				"          fecha_nac,",
+				"          edad,",
+				"          genero,",
+				"          estado_civil,",
+				"          municipio,",
+				"          numero_hijos,",
+				"          profesion,",
+				"          nivel_estudios",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
