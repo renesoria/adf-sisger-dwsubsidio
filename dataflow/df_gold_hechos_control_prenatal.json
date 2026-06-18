@@ -1,0 +1,84 @@
+{
+	"name": "df_gold_hechos_control_prenatal",
+	"properties": {
+		"folder": {
+			"name": "gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_controles_prenatales",
+						"type": "DatasetReference"
+					},
+					"name": "srcControlPrenatal"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_hechos_control_prenatal",
+						"type": "DatasetReference"
+					},
+					"name": "sinkHechosControlPrenatal"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          persona_id as integer,",
+				"          establecimiento_id as integer,",
+				"          tiempo_id as integer,",
+				"          sistema as string,",
+				"          nro_control as integer,",
+				"          semana_gestacion as double,",
+				"          peso_madre_kg as decimal(5,1),",
+				"          presion_sistolica as integer,",
+				"          presion_diastolica as integer,",
+				"          resultado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    dp.persona_id,\\n    de.establecimiento_id,\\n    dt.tiempo_id,\\n    c.sistema,\\n    c.nro_control,\\n    c.semana_gestacion,\\n    c.peso_madre_kg,\\n    c.presion_sistolica,\\n    c.presion_diastolica,\\n    c.resultado\\nFROM (\\n    SELECT ci_beneficiaria, establecimiento_id, fecha_control, nro_control, semana_gestacion, peso_madre_kg, presion_sistolica, presion_diastolica, resultado, \\'BJA\\' AS sistema\\n    FROM silver.bja_controles_prenatales\\n    UNION ALL\\n    SELECT ci_beneficiaria, establecimiento_id, fecha_control, nro_control, semana_gestacion, peso_madre_kg, presion_sistolica, presion_diastolica, NULL AS resultado, \\'SUP\\' AS sistema\\n    FROM silver.sup_controles\\n) c\\nLEFT JOIN gold.dim_persona dp ON c.ci_beneficiaria = dp.ci\\nLEFT JOIN gold.dim_establecimiento de ON c.establecimiento_id = de.id_origen AND c.sistema = de.sistema\\nLEFT JOIN gold.dim_tiempo dt ON c.fecha_control = dt.fecha',",
+				"     format: 'query') ~> srcControlPrenatal",
+				"srcControlPrenatal sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          control_id as integer,",
+				"          persona_id as integer,",
+				"          establecimiento_id as integer,",
+				"          tiempo_id as integer,",
+				"          sistema as string,",
+				"          nro_control as integer,",
+				"          semana_gestacion as double,",
+				"          peso_madre_kg as double,",
+				"          presion_sistolica as integer,",
+				"          presion_diastolica as integer,",
+				"          resultado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          persona_id,",
+				"          establecimiento_id,",
+				"          tiempo_id,",
+				"          sistema,",
+				"          nro_control,",
+				"          semana_gestacion,",
+				"          peso_madre_kg,",
+				"          presion_sistolica,",
+				"          presion_diastolica,",
+				"          resultado",
+				"     )) ~> sinkHechosControlPrenatal"
+			]
+		}
+	}
+}

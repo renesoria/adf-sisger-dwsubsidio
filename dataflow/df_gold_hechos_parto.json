@@ -1,0 +1,75 @@
+{
+	"name": "df_gold_hechos_parto",
+	"properties": {
+		"folder": {
+			"name": "gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_partos",
+						"type": "DatasetReference"
+					},
+					"name": "srcParto"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_hechos_parto",
+						"type": "DatasetReference"
+					},
+					"name": "sinkHechosParto"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          persona_id_madre as integer,",
+				"          persona_id_nino as integer,",
+				"          establecimiento_id as integer,",
+				"          tiempo_id as integer,",
+				"          tipo_parto as string,",
+				"          peso_nacimiento_kg as decimal(4,2),",
+				"          talla_nacimiento_cm as decimal(4,1)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    dpm.persona_id AS persona_id_madre,\\n    dpn.persona_id AS persona_id_nino,\\n    de.establecimiento_id,\\n    dt.tiempo_id,\\n    p.tipo_parto,\\n    p.peso_nacimiento_kg,\\n    p.talla_nacimiento_cm\\nFROM silver.bja_partos p\\nLEFT JOIN gold.dim_persona dpm ON p.ci_madre = dpm.ci\\nLEFT JOIN gold.dim_persona dpn ON p.ci_recien_nacido = dpn.ci\\nLEFT JOIN gold.dim_establecimiento de ON p.establecimiento_id = de.id_origen AND de.sistema = \\'BJA\\'\\nLEFT JOIN gold.dim_tiempo dt ON p.fecha_parto = dt.fecha',",
+				"     format: 'query') ~> srcParto",
+				"srcParto sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          parto_id as integer,",
+				"          persona_id_madre as integer,",
+				"          persona_id_nino as integer,",
+				"          establecimiento_id as integer,",
+				"          tiempo_id as integer,",
+				"          tipo_parto as string,",
+				"          peso_nacimiento_kg as double,",
+				"          talla_nacimiento_cm as double",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          persona_id_madre,",
+				"          persona_id_nino,",
+				"          establecimiento_id,",
+				"          tiempo_id,",
+				"          tipo_parto,",
+				"          peso_nacimiento_kg,",
+				"          talla_nacimiento_cm",
+				"     )) ~> sinkHechosParto"
+			]
+		}
+	}
+}

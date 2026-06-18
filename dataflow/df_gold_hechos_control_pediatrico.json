@@ -1,0 +1,81 @@
+{
+	"name": "df_gold_hechos_control_pediatrico",
+	"properties": {
+		"folder": {
+			"name": "gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_controles_pediatricos",
+						"type": "DatasetReference"
+					},
+					"name": "srcControlPediatrico"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_hechos_control_pediatrico",
+						"type": "DatasetReference"
+					},
+					"name": "sinkHechosControlPediatrico"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          persona_id_nino as integer,",
+				"          persona_id_madre as integer,",
+				"          establecimiento_id as integer,",
+				"          tiempo_id as integer,",
+				"          nro_control as integer,",
+				"          peso_nino_kg as decimal(5,2),",
+				"          talla_nino_cm as decimal(5,1),",
+				"          vacuna_aplicada as string,",
+				"          resultado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    dpn.persona_id AS persona_id_nino,\\n    dpm.persona_id AS persona_id_madre,\\n    de.establecimiento_id,\\n    dt.tiempo_id,\\n    c.nro_control,\\n    c.peso_nino_kg,\\n    c.talla_nino_cm,\\n    c.vacuna_aplicada,\\n    c.resultado\\nFROM silver.bja_controles_pediatricos c\\nLEFT JOIN gold.dim_persona dpn ON c.ci_nino = dpn.ci\\nLEFT JOIN gold.dim_persona dpm ON c.ci_madre = dpm.ci\\nLEFT JOIN gold.dim_establecimiento de ON c.establecimiento_id = de.id_origen AND de.sistema = \\'BJA\\'\\nLEFT JOIN gold.dim_tiempo dt ON c.fecha_control = dt.fecha',",
+				"     format: 'query') ~> srcControlPediatrico",
+				"srcControlPediatrico sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          control_id as integer,",
+				"          persona_id_nino as integer,",
+				"          persona_id_madre as integer,",
+				"          establecimiento_id as integer,",
+				"          tiempo_id as integer,",
+				"          nro_control as integer,",
+				"          peso_nino_kg as double,",
+				"          talla_nino_cm as double,",
+				"          vacuna_aplicada as string,",
+				"          resultado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          persona_id_nino,",
+				"          persona_id_madre,",
+				"          establecimiento_id,",
+				"          tiempo_id,",
+				"          nro_control,",
+				"          peso_nino_kg,",
+				"          talla_nino_cm,",
+				"          vacuna_aplicada,",
+				"          resultado",
+				"     )) ~> sinkHechosControlPediatrico"
+			]
+		}
+	}
+}

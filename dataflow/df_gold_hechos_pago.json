@@ -1,0 +1,75 @@
+{
+	"name": "df_gold_hechos_pago",
+	"properties": {
+		"folder": {
+			"name": "gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_pagos",
+						"type": "DatasetReference"
+					},
+					"name": "srcPago"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_hechos_pago",
+						"type": "DatasetReference"
+					},
+					"name": "sinkHechosPago"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          persona_id as integer,",
+				"          tiempo_id as integer,",
+				"          concepto_pago as string,",
+				"          monto_bs as decimal(10,2),",
+				"          estado_pago as string,",
+				"          canal_pago as string,",
+				"          nro_comprobante as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    dp.persona_id,\\n    dt.tiempo_id,\\n    pg.concepto_pago,\\n    pg.monto_bs,\\n    pg.estado_pago,\\n    pg.canal_pago,\\n    pg.nro_comprobante\\nFROM silver.bja_pagos pg\\nLEFT JOIN gold.dim_persona dp ON pg.ci_beneficiaria = dp.ci\\nLEFT JOIN gold.dim_tiempo dt ON pg.fecha_pago = dt.fecha',",
+				"     format: 'query') ~> srcPago",
+				"srcPago sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          pago_id as integer,",
+				"          persona_id as integer,",
+				"          tiempo_id as integer,",
+				"          concepto_pago as string,",
+				"          monto_bs as double,",
+				"          estado_pago as string,",
+				"          canal_pago as string,",
+				"          nro_comprobante as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          persona_id,",
+				"          tiempo_id,",
+				"          concepto_pago,",
+				"          monto_bs,",
+				"          estado_pago,",
+				"          canal_pago,",
+				"          nro_comprobante",
+				"     )) ~> sinkHechosPago"
+			]
+		}
+	}
+}

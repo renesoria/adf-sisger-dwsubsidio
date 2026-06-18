@@ -1,0 +1,75 @@
+{
+	"name": "df_gold_hechos_entrega",
+	"properties": {
+		"folder": {
+			"name": "gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "silver_sup_entregas",
+						"type": "DatasetReference"
+					},
+					"name": "srcEntrega"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_hechos_entrega",
+						"type": "DatasetReference"
+					},
+					"name": "sinkHechosEntrega"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          persona_id as integer,",
+				"          establecimiento_id as integer,",
+				"          paquete_id as integer,",
+				"          tiempo_id as integer,",
+				"          peso_paquete_kg as decimal(5,2),",
+				"          lote_produccion as string,",
+				"          fecha_proxima_entrega as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    dp.persona_id,\\n    de.establecimiento_id,\\n    dpq.paquete_id,\\n    dt.tiempo_id,\\n    e.peso_paquete_kg,\\n    e.lote_produccion,\\n    e.fecha_proxima_entrega\\nFROM silver.sup_entregas e\\nLEFT JOIN gold.dim_persona dp ON e.ci_beneficiaria = dp.ci\\nLEFT JOIN gold.dim_establecimiento de ON e.establecimiento_id = de.id_origen AND de.sistema = \\'SUP\\'\\nLEFT JOIN gold.dim_paquete dpq ON e.paquete_nombre = dpq.nombre\\nLEFT JOIN gold.dim_tiempo dt ON e.fecha_entrega = dt.fecha',",
+				"     format: 'query') ~> srcEntrega",
+				"srcEntrega sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          entrega_id as integer,",
+				"          persona_id as integer,",
+				"          establecimiento_id as integer,",
+				"          paquete_id as integer,",
+				"          tiempo_id as integer,",
+				"          peso_paquete_kg as double,",
+				"          lote_produccion as string,",
+				"          fecha_proxima_entrega as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          persona_id,",
+				"          establecimiento_id,",
+				"          paquete_id,",
+				"          tiempo_id,",
+				"          peso_paquete_kg,",
+				"          lote_produccion,",
+				"          fecha_proxima_entrega",
+				"     )) ~> sinkHechosEntrega"
+			]
+		}
+	}
+}
