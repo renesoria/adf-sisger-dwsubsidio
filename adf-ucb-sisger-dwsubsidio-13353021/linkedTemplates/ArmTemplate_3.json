@@ -1,0 +1,1106 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Nombre de instancia de Data Factory",
+			"defaultValue": "adf-ucb-sisger-dwsubsidio-13353021"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_sup_inscripciones')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "bronze_sup_inscripciones",
+								"type": "DatasetReference"
+							},
+							"name": "srcSupInscripciones"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "silver_sup_inscripciones",
+								"type": "DatasetReference"
+							},
+							"name": "sinkSupInscripciones"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpieza"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          inscripcion_id as integer,",
+						"          ci_beneficiaria as string,",
+						"          establecimiento_id as integer,",
+						"          fecha_inscripcion as string,",
+						"          semana_gestacion as integer,",
+						"          estado as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    inscripcion_id,\\n    REPLACE(REPLACE(TRIM(ci_beneficiaria),\\'\"\\',\\'\\'),\\' \\',\\'\\') AS ci_beneficiaria,\\n    establecimiento_id,\\n    REPLACE(TRIM(fecha_inscripcion),\\'\"\\',\\'\\') AS fecha_inscripcion,\\n    semana_gestacion,\\n    REPLACE(TRIM(estado),\\'\"\\',\\'\\') AS estado\\nFROM bronze.sup_inscripciones\\nWHERE inscripcion_id IS NOT NULL',",
+						"     format: 'query') ~> srcSupInscripciones",
+						"srcSupInscripciones derive(ci_beneficiaria = upper(regexReplace(replace(replace(toString(ci_beneficiaria),'-',''),' ',''),'^([A-Za-z]{2})([0-9]+)$','$2$1')),",
+						"          fecha_inscripcion = coalesce(toDate(toString(fecha_inscripcion),'yyyy-MM-dd'),toDate(toString(fecha_inscripcion),'dd-MM-yyyy'),toDate(toString(fecha_inscripcion),'dd/MM/yyyy'),toDate(toString(fecha_inscripcion),'MM/dd/yyyy')),",
+						"          estado = iif(instr(upper(toString(estado)),'COMPL')>0,'Completada',iif(instr(upper(toString(estado)),'INACT')>0,'Inactiva',iif(instr(upper(toString(estado)),'ACTIV')>0,'Activa',toString(null()))))) ~> limpieza",
+						"limpieza sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          inscripcion_id as integer,",
+						"          ci_beneficiaria as string,",
+						"          establecimiento_id as integer,",
+						"          fecha_inscripcion as date,",
+						"          semana_gestacion as integer,",
+						"          estado as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sinkSupInscripciones"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_sup_establecimientos')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "bronze_sup_establecimientos",
+								"type": "DatasetReference"
+							},
+							"name": "srcSupEstablecimientos"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "silver_sup_establecimientos",
+								"type": "DatasetReference"
+							},
+							"name": "sinkSupEstablecimientos"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpieza"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          establecimiento_id as integer,",
+						"          codigo_snis as string,",
+						"          nombre as string,",
+						"          tipo as string,",
+						"          nivel_atencion as string,",
+						"          municipio as string,",
+						"          departamento as string,",
+						"          red_salud as string,",
+						"          estado as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    establecimiento_id,\\n    REPLACE(TRIM(codigo_snis),\\'\"\\',\\'\\') AS codigo_snis,\\n    REPLACE(TRIM(nombre),\\'\"\\',\\'\\') AS nombre,\\n    REPLACE(TRIM(tipo),\\'\"\\',\\'\\') AS tipo,\\n    REPLACE(TRIM(nivel_atencion),\\'\"\\',\\'\\') AS nivel_atencion,\\n    REPLACE(TRIM(municipio),\\'\"\\',\\'\\') AS municipio,\\n    REPLACE(TRIM(departamento),\\'\"\\',\\'\\') AS departamento,\\n    REPLACE(TRIM(red_salud),\\'\"\\',\\'\\') AS red_salud,\\n    REPLACE(TRIM(estado),\\'\"\\',\\'\\') AS estado\\nFROM bronze.sup_establecimientos\\nWHERE establecimiento_id IS NOT NULL',",
+						"     format: 'query') ~> srcSupEstablecimientos",
+						"srcSupEstablecimientos derive(departamento = case(upper(toString(departamento))=='LP' || upper(toString(departamento))=='LA PAZ','La Paz',case(upper(toString(departamento))=='CB' || upper(toString(departamento))=='COCHABAMBA','Cochabamba',case(upper(toString(departamento))=='SC' || upper(toString(departamento))=='SANTA CRUZ','Santa Cruz',case(upper(toString(departamento))=='OR' || upper(toString(departamento))=='ORURO','Oruro',case(upper(toString(departamento))=='PT' || upper(toString(departamento))=='POTOSI','Potosí',case(upper(toString(departamento))=='TJ' || upper(toString(departamento))=='TARIJA','Tarija',case(upper(toString(departamento))=='CH' || upper(toString(departamento))=='CHUQUISACA','Chuquisaca',case(upper(toString(departamento))=='BN' || upper(toString(departamento))=='BENI','Beni',case(upper(toString(departamento))=='PD' || upper(toString(departamento))=='PANDO','Pando',toString(departamento)))))))))),",
+						"          sistema = 'SUP') ~> limpieza",
+						"limpieza sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          establecimiento_id as integer,",
+						"          sistema as string,",
+						"          codigo_snis as string,",
+						"          nombre as string,",
+						"          tipo as string,",
+						"          nivel_atencion as string,",
+						"          municipio as string,",
+						"          departamento as string,",
+						"          red_salud as string,",
+						"          estado as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sinkSupEstablecimientos"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_sup_entregas')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "bronze_sup_entregas",
+								"type": "DatasetReference"
+							},
+							"name": "srcSupEntregas"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "silver_sup_entregas",
+								"type": "DatasetReference"
+							},
+							"name": "sinkSupEntregas"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpieza"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          entrega_id as integer,",
+						"          boleta_id as integer,",
+						"          ci_beneficiaria as string,",
+						"          establecimiento_id as integer,",
+						"          paquete_id as integer,",
+						"          paquete_nombre as string,",
+						"          fecha_entrega as string,",
+						"          lote_produccion as string,",
+						"          peso_paquete_kg as double,",
+						"          fecha_proxima_entrega as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    entrega_id,\\n    boleta_id,\\n    REPLACE(REPLACE(TRIM(ci_beneficiaria),\\'\"\\',\\'\\'),\\' \\',\\'\\') AS ci_beneficiaria,\\n    establecimiento_id,\\n    paquete_id,\\n    REPLACE(TRIM(paquete_nombre),\\'\"\\',\\'\\') AS paquete_nombre,\\n    REPLACE(TRIM(fecha_entrega),\\'\"\\',\\'\\') AS fecha_entrega,\\n    REPLACE(TRIM(lote_produccion),\\'\"\\',\\'\\') AS lote_produccion,\\n    peso_paquete_kg,\\n    REPLACE(TRIM(fecha_proxima_entrega),\\'\"\\',\\'\\') AS fecha_proxima_entrega\\nFROM bronze.sup_entregas\\nWHERE entrega_id IS NOT NULL',",
+						"     format: 'query') ~> srcSupEntregas",
+						"srcSupEntregas derive(ci_beneficiaria = upper(regexReplace(replace(replace(toString(ci_beneficiaria),'-',''),' ',''),'^([A-Za-z]{2})([0-9]+)$','$2$1')),",
+						"          fecha_entrega = coalesce(toDate(toString(fecha_entrega),'yyyy-MM-dd'),toDate(toString(fecha_entrega),'dd-MM-yyyy'),toDate(toString(fecha_entrega),'dd/MM/yyyy'),toDate(toString(fecha_entrega),'MM/dd/yyyy')),",
+						"          fecha_proxima_entrega = coalesce(toDate(toString(fecha_proxima_entrega),'yyyy-MM-dd'),toDate(toString(fecha_proxima_entrega),'dd-MM-yyyy'),toDate(toString(fecha_proxima_entrega),'dd/MM/yyyy'),toDate(toString(fecha_proxima_entrega),'MM/dd/yyyy')),",
+						"          peso_paquete_kg = round(toFloat(peso_paquete_kg),2)) ~> limpieza",
+						"limpieza sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          entrega_id as integer,",
+						"          boleta_id as integer,",
+						"          ci_beneficiaria as string,",
+						"          establecimiento_id as integer,",
+						"          paquete_id as integer,",
+						"          paquete_nombre as string,",
+						"          fecha_entrega as date,",
+						"          lote_produccion as string,",
+						"          peso_paquete_kg as double,",
+						"          fecha_proxima_entrega as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sinkSupEntregas"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_sup_catalogopaquetes')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "bronze_sup_catalogopaquetes",
+								"type": "DatasetReference"
+							},
+							"name": "srcSupCatalogoPaquetes"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "silver_sup_catalogopaquetes",
+								"type": "DatasetReference"
+							},
+							"name": "sinkSupCatalogoPaquetes"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpieza"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          paquete_id as integer,",
+						"          nombre as string,",
+						"          contenido as string,",
+						"          peso_estandar_kg as double,",
+						"          costo_estimado_bs as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    paquete_id,\\n    REPLACE(TRIM(nombre),\\'\"\\',\\'\\') AS nombre,\\n    REPLACE(TRIM(contenido),\\'\"\\',\\'\\') AS contenido,\\n    peso_estandar_kg,\\n    costo_estimado_bs\\nFROM bronze.sup_catalogopaquetes\\nWHERE paquete_id IS NOT NULL',",
+						"     format: 'query') ~> srcSupCatalogoPaquetes",
+						"srcSupCatalogoPaquetes derive(peso_estandar_kg = round(toFloat(peso_estandar_kg),2)) ~> limpieza",
+						"limpieza sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          paquete_id as integer,",
+						"          nombre as string,",
+						"          contenido as string,",
+						"          peso_estandar_kg as double,",
+						"          costo_estimado_bs as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sinkSupCatalogoPaquetes"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_segip')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "bronze_segip",
+								"type": "DatasetReference"
+							},
+							"name": "srcSegip"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "silver_segip",
+								"type": "DatasetReference"
+							},
+							"name": "sinkSegip"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpieza"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CI as string,",
+						"          Nombres as string,",
+						"          Ap_Paterno as string,",
+						"          Ap_Materno as string,",
+						"          Fecha_Nac as string,",
+						"          Genero as string,",
+						"          Estado_Civil as string,",
+						"          Municipio as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    TRIM(CI) AS CI,\\n    TRIM(Nombres) AS Nombres,\\n    TRIM(Ap_Paterno) AS Ap_Paterno,\\n    TRIM(Ap_Materno) AS Ap_Materno,\\n    TRIM(Fecha_Nac) AS Fecha_Nac,\\n    TRIM(Genero) AS Genero,\\n    TRIM(Estado_Civil) AS Estado_Civil,\\n    TRIM(Municipio) AS Municipio\\nFROM bronze.segip\\nWHERE CI IS NOT NULL',",
+						"     format: 'query') ~> srcSegip",
+						"srcSegip derive(Fecha_Nac = coalesce(toDate(toString(Fecha_Nac),'dd/MM/yyyy'),toDate(toString(Fecha_Nac),'yyyy-MM-dd'),toDate(toString(Fecha_Nac),'dd-MM-yyyy'),toDate(toString(Fecha_Nac),'MM/dd/yyyy'))) ~> limpieza",
+						"limpieza sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          CI as string,",
+						"          Nombres as string,",
+						"          Ap_Paterno as string,",
+						"          Ap_Materno as string,",
+						"          Fecha_Nac as date,",
+						"          Genero as string,",
+						"          Estado_Civil as string,",
+						"          Municipio as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sinkSegip"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Gold_Dim_Paquete')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "silver_sup_catalogopaquetes",
+								"type": "DatasetReference"
+							},
+							"name": "srcsupcatalogopaquetes"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_gold_dim_paquete",
+								"type": "DatasetReference"
+							},
+							"name": "goldimpaquete"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          paquete_id as integer,",
+						"          nombre as string,",
+						"          contenido as string,",
+						"          peso_estandar_kg as decimal(5,2),",
+						"          costo_estimado_bs as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> srcsupcatalogopaquetes",
+						"srcsupcatalogopaquetes sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          paquete_id as integer,",
+						"          nombre as string,",
+						"          contenido as string,",
+						"          peso_estandar_kg as double,",
+						"          costo_estimado_bs as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          nombre,",
+						"          contenido,",
+						"          peso_estandar_kg,",
+						"          costo_estimado_bs",
+						"     )) ~> goldimpaquete"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_gold_dim_establecimiento')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "silver_bja_establecimientos",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_gold_dim_establecimiento",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          sistema as string,",
+						"          codigo_snis as string,",
+						"          nombre as string,",
+						"          tipo as string,",
+						"          nivel_atencion as string,",
+						"          municipio as string,",
+						"          departamento as string,",
+						"          red_salud as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT sistema,codigo_snis,nombre,tipo,\\n    nivel_atencion,\\n    municipio,\\n    departamento,\\n    red_salud\\nFROM silver.bja_establecimientos_salud\\nUNION ALL\\nSELECT sistema,codigo_snis,nombre,tipo,\\n    nivel_atencion,\\n    municipio,\\n    departamento,\\n    red_salud\\nFROM silver.sup_establecimientos',",
+						"     format: 'query') ~> source1",
+						"source1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          establecimiento_id as integer,",
+						"          sistema as string,",
+						"          codigo_snis as string,",
+						"          nombre as string,",
+						"          tipo as string,",
+						"          nivel_atencion as string,",
+						"          municipio as string,",
+						"          departamento as string,",
+						"          red_salud as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          sistema,",
+						"          codigo_snis,",
+						"          nombre,",
+						"          tipo,",
+						"          nivel_atencion,",
+						"          municipio,",
+						"          departamento,",
+						"          red_salud",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pip_bronze')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "df_bronze",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_bronze_carga_completa",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcsegip": {},
+									"srcbjaInscripciones": {},
+									"srcBjaEstablecimientos": {},
+									"srcBjaPartos": {},
+									"srcBjaControlesPrenatales": {},
+									"srcBjaControlesPediatricos": {},
+									"srcBjaPagos": {},
+									"srcSupInscripciones": {},
+									"srcSupEstablecimientos": {},
+									"srcSupBoletas": {},
+									"srcSupCatalogoPaquetes": {},
+									"srcSupControles": {},
+									"srcSupEntregas": {},
+									"bronzeSegip": {},
+									"bjaIinscripciones": {},
+									"sinkBjaEstablecimientos": {},
+									"sinkBjaPartos": {},
+									"sinkBjaControlesPrenatales": {},
+									"sinkBjaControlesPediatricos": {},
+									"sinkBjaPagos": {},
+									"sinkSupInscripciones": {},
+									"sinkSupEstablecimientos": {},
+									"sinkSupBoletas": {},
+									"sinkSupCatalogoPaquetes": {},
+									"sinkSupControles": {},
+									"sinkSupEntregas": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pip_silver')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "df_silver_segip",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_segip",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcSegip": {},
+									"sinkSegip": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_bja_inscripciones",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_segip",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_bja_inscripciones",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcBjaInscripciones": {},
+									"sinkBjaInscripciones": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_bja_establecimientos",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_bja_inscripciones",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_bja_establecimientos",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcBjaEstablecimientos": {},
+									"sinkBjaEstablecimientos": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_bja_partos",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_bja_establecimientos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_bja_partos",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcBjaPartos": {},
+									"sinkBjaPartos": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_bja_controles_prenatales",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_bja_partos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_bja_controles_prenatales",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcBjaControlesPrenatales": {},
+									"sinkBJAcontrolesPrenatales": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_bja_controles_pediatricos",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_bja_controles_prenatales",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_bja_controles_pediatricos",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcBjaControlesPediatricos": {},
+									"sinkBJAcontrolesPediatricos": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_bja_pagos",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_bja_controles_pediatricos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_bja_pagos",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcBjaPagos": {},
+									"sinkBjaPagos": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_sup_inscripciones",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_bja_pagos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_sup_inscripciones",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcSupInscripciones": {},
+									"sinkSupInscripciones": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_sup_establecimientos",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_sup_inscripciones",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_sup_establecimientos",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcSupEstablecimientos": {},
+									"sinkSupEstablecimientos": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_sup_boletas",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_sup_establecimientos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_sup_boletas",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcSupBoletas": {},
+									"sinkSupBoletas": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_sup_catalogopaquetes",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_sup_boletas",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_sup_catalogopaquetes",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcSupCatalogoPaquetes": {},
+									"sinkSupCatalogoPaquetes": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_sup_controles",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_sup_catalogopaquetes",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_sup_controles",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcSupControles": {},
+									"sinkSupControles": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "df_silver_sup_entregas",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "df_silver_sup_controles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_sup_entregas",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"srcSupEntregas": {},
+									"sinkSupEntregas": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_silver_segip')]",
+				"[concat(variables('factoryId'), '/dataflows/df_silver_sup_inscripciones')]",
+				"[concat(variables('factoryId'), '/dataflows/df_silver_sup_establecimientos')]",
+				"[concat(variables('factoryId'), '/dataflows/df_silver_sup_catalogopaquetes')]",
+				"[concat(variables('factoryId'), '/dataflows/df_silver_sup_entregas')]"
+			]
+		}
+	]
+}

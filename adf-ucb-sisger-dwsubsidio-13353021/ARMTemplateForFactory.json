@@ -4879,6 +4879,802 @@
 				"[concat(variables('factoryId'), '/dataflows/df_silver_sup_controles')]",
 				"[concat(variables('factoryId'), '/dataflows/df_silver_sup_entregas')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Gold_Dim_Paquete')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "silver_sup_catalogopaquetes",
+								"type": "DatasetReference"
+							},
+							"name": "srcsupcatalogopaquetes"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_gold_dim_paquete",
+								"type": "DatasetReference"
+							},
+							"name": "goldimpaquete"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          paquete_id as integer,",
+						"          nombre as string,",
+						"          contenido as string,",
+						"          peso_estandar_kg as decimal(5,2),",
+						"          costo_estimado_bs as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> srcsupcatalogopaquetes",
+						"srcsupcatalogopaquetes sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          paquete_id as integer,",
+						"          nombre as string,",
+						"          contenido as string,",
+						"          peso_estandar_kg as double,",
+						"          costo_estimado_bs as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          nombre,",
+						"          contenido,",
+						"          peso_estandar_kg,",
+						"          costo_estimado_bs",
+						"     )) ~> goldimpaquete"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/silver_sup_catalogopaquetes')]",
+				"[concat(variables('factoryId'), '/datasets/ds_gold_dim_paquete')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_dim_paquete')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "paquete_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "nombre",
+						"type": "varchar"
+					},
+					{
+						"name": "contenido",
+						"type": "varchar"
+					},
+					{
+						"name": "peso_estandar_kg",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "costo_estimado_bs",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_paquete"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_dim_tiempo')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "tiempo_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "fecha",
+						"type": "date"
+					},
+					{
+						"name": "anio",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "mes",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "nombre_mes",
+						"type": "varchar"
+					},
+					{
+						"name": "trimestre",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "dia",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "dia_semana",
+						"type": "varchar"
+					},
+					{
+						"name": "es_fin_de_semana",
+						"type": "bit"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_tiempo"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_dim_persona')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "persona_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ci",
+						"type": "varchar"
+					},
+					{
+						"name": "nombres",
+						"type": "varchar"
+					},
+					{
+						"name": "ap_paterno",
+						"type": "varchar"
+					},
+					{
+						"name": "ap_materno",
+						"type": "varchar"
+					},
+					{
+						"name": "fecha_nac",
+						"type": "date"
+					},
+					{
+						"name": "edad",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "genero",
+						"type": "varchar"
+					},
+					{
+						"name": "estado_civil",
+						"type": "varchar"
+					},
+					{
+						"name": "municipio",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_persona"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_dim_establecimiento')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "establecimiento_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "sistema",
+						"type": "varchar"
+					},
+					{
+						"name": "codigo_snis",
+						"type": "varchar"
+					},
+					{
+						"name": "nombre",
+						"type": "varchar"
+					},
+					{
+						"name": "tipo",
+						"type": "varchar"
+					},
+					{
+						"name": "nivel_atencion",
+						"type": "varchar"
+					},
+					{
+						"name": "municipio",
+						"type": "varchar"
+					},
+					{
+						"name": "departamento",
+						"type": "varchar"
+					},
+					{
+						"name": "red_salud",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_establecimiento"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_hechos_inscripcion')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "inscripcion_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "establecimiento_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tiempo_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "sistema",
+						"type": "varchar"
+					},
+					{
+						"name": "semana_gestacion",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "estado",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "hechos_inscripcion"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_hechos_control_prenatal')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "control_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "establecimiento_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tiempo_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "sistema",
+						"type": "varchar"
+					},
+					{
+						"name": "nro_control",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "semana_gestacion",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "peso_madre_kg",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "presion_sistolica",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "presion_diastolica",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "resultado",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "hechos_control_prenatal"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_hechos_control_pediatrico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "control_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id_nino",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id_madre",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "establecimiento_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tiempo_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "nro_control",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "peso_nino_kg",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "talla_nino_cm",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "vacuna_aplicada",
+						"type": "varchar"
+					},
+					{
+						"name": "resultado",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "hechos_control_pediatrico"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_hechos_parto')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "parto_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id_madre",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id_nino",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "establecimiento_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tiempo_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tipo_parto",
+						"type": "varchar"
+					},
+					{
+						"name": "peso_nacimiento_kg",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "talla_nacimiento_cm",
+						"type": "float",
+						"precision": 15
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "hechos_parto"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_hechos_pago')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "pago_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tiempo_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "concepto_pago",
+						"type": "varchar"
+					},
+					{
+						"name": "monto_bs",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "estado_pago",
+						"type": "varchar"
+					},
+					{
+						"name": "canal_pago",
+						"type": "varchar"
+					},
+					{
+						"name": "nro_comprobante",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "hechos_pago"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_hechos_entrega')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "entrega_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "establecimiento_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "paquete_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tiempo_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "peso_paquete_kg",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "lote_produccion",
+						"type": "varchar"
+					},
+					{
+						"name": "fecha_proxima_entrega",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "hechos_entrega"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_gold_dim_establecimiento')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "silver_bja_establecimientos",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_gold_dim_establecimiento",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          sistema as string,",
+						"          codigo_snis as string,",
+						"          nombre as string,",
+						"          tipo as string,",
+						"          nivel_atencion as string,",
+						"          municipio as string,",
+						"          departamento as string,",
+						"          red_salud as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT sistema,codigo_snis,nombre,tipo,\\n    nivel_atencion,\\n    municipio,\\n    departamento,\\n    red_salud\\nFROM silver.bja_establecimientos_salud\\nUNION ALL\\nSELECT sistema,codigo_snis,nombre,tipo,\\n    nivel_atencion,\\n    municipio,\\n    departamento,\\n    red_salud\\nFROM silver.sup_establecimientos',",
+						"     format: 'query') ~> source1",
+						"source1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          establecimiento_id as integer,",
+						"          sistema as string,",
+						"          codigo_snis as string,",
+						"          nombre as string,",
+						"          tipo as string,",
+						"          nivel_atencion as string,",
+						"          municipio as string,",
+						"          departamento as string,",
+						"          red_salud as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          sistema,",
+						"          codigo_snis,",
+						"          nombre,",
+						"          tipo,",
+						"          nivel_atencion,",
+						"          municipio,",
+						"          departamento,",
+						"          red_salud",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/silver_bja_establecimientos')]",
+				"[concat(variables('factoryId'), '/datasets/ds_gold_dim_establecimiento')]"
+			]
 		}
 	]
 }
