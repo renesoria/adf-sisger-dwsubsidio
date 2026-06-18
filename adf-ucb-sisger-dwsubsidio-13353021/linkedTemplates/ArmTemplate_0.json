@@ -453,35 +453,64 @@
 				"type": "AzureSqlTable",
 				"schema": [
 					{
-						"name": "CI",
+						"name": "ci",
 						"type": "varchar"
 					},
 					{
-						"name": "Nombres",
+						"name": "nombres",
 						"type": "varchar"
 					},
 					{
-						"name": "Ap_Paterno",
+						"name": "apellido_paterno",
 						"type": "varchar"
 					},
 					{
-						"name": "Ap_Materno",
+						"name": "apellido_materno",
 						"type": "varchar"
 					},
 					{
-						"name": "Fecha_Nac",
+						"name": "fecha_nacimiento",
 						"type": "varchar"
 					},
 					{
-						"name": "Genero",
+						"name": "genero",
 						"type": "varchar"
 					},
 					{
-						"name": "Estado_Civil",
+						"name": "estado_civil",
 						"type": "varchar"
 					},
 					{
-						"name": "Municipio",
+						"name": "ci_conyuge",
+						"type": "varchar"
+					},
+					{
+						"name": "numero_hijos",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ci_padre",
+						"type": "varchar"
+					},
+					{
+						"name": "ci_madre",
+						"type": "varchar"
+					},
+					{
+						"name": "profesion",
+						"type": "varchar"
+					},
+					{
+						"name": "nivel_estudios",
+						"type": "varchar"
+					},
+					{
+						"name": "municipio_residencia",
+						"type": "varchar"
+					},
+					{
+						"name": "fecha_emision",
 						"type": "varchar"
 					}
 				],
@@ -840,7 +869,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/silver_bja_controles_pediatricos')]",
+			"name": "[concat(parameters('factoryName'), '/ds_gold_dim_establecimiento')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -849,150 +878,7 @@
 					"type": "LinkedServiceReference"
 				},
 				"folder": {
-					"name": "silver"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "control_pediatrico_id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "ci_nino",
-						"type": "varchar"
-					},
-					{
-						"name": "ci_madre",
-						"type": "varchar"
-					},
-					{
-						"name": "establecimiento_id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "nro_control",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "fecha_control",
-						"type": "date"
-					},
-					{
-						"name": "peso_nino_kg",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "talla_nino_cm",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "vacuna_aplicada",
-						"type": "varchar"
-					},
-					{
-						"name": "resultado",
-						"type": "varchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "silver",
-					"table": "bja_controles_pediatricos"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/silver_bja_controles_prenatales')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "dw_subsidio",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "silver"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "control_prenatal_id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "ci_beneficiaria",
-						"type": "varchar"
-					},
-					{
-						"name": "establecimiento_id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "nro_control",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "fecha_control",
-						"type": "date"
-					},
-					{
-						"name": "semana_gestacion",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "peso_madre_kg",
-						"type": "decimal",
-						"precision": 5,
-						"scale": 1
-					},
-					{
-						"name": "presion_sistolica",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "presion_diastolica",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "resultado",
-						"type": "varchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "silver",
-					"table": "bja_controles_prenatales"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/silver_bja_establecimientos')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "dw_subsidio",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "silver"
+					"name": "gold"
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
@@ -1033,15 +919,11 @@
 					{
 						"name": "red_salud",
 						"type": "varchar"
-					},
-					{
-						"name": "estado",
-						"type": "varchar"
 					}
 				],
 				"typeProperties": {
-					"schema": "silver",
-					"table": "bja_establecimientos_salud"
+					"schema": "gold",
+					"table": "dim_establecimiento"
 				}
 			},
 			"dependsOn": [
@@ -1049,7 +931,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/silver_bja_inscripciones')]",
+			"name": "[concat(parameters('factoryName'), '/ds_gold_dim_paquete')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -1058,19 +940,219 @@
 					"type": "LinkedServiceReference"
 				},
 				"folder": {
-					"name": "silver"
+					"name": "gold"
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [
 					{
-						"name": "inscripcion_id",
+						"name": "paquete_id",
 						"type": "int",
 						"precision": 10
 					},
 					{
-						"name": "ci_beneficiaria",
+						"name": "nombre",
 						"type": "varchar"
+					},
+					{
+						"name": "contenido",
+						"type": "varchar"
+					},
+					{
+						"name": "peso_estandar_kg",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "costo_estimado_bs",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_paquete"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_dim_persona')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "persona_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ci",
+						"type": "varchar"
+					},
+					{
+						"name": "nombres",
+						"type": "varchar"
+					},
+					{
+						"name": "ap_paterno",
+						"type": "varchar"
+					},
+					{
+						"name": "ap_materno",
+						"type": "varchar"
+					},
+					{
+						"name": "fecha_nac",
+						"type": "date"
+					},
+					{
+						"name": "edad",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "genero",
+						"type": "varchar"
+					},
+					{
+						"name": "estado_civil",
+						"type": "varchar"
+					},
+					{
+						"name": "municipio",
+						"type": "varchar"
+					},
+					{
+						"name": "numero_hijos",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "profesion",
+						"type": "varchar"
+					},
+					{
+						"name": "nivel_estudios",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_persona"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_dim_tiempo')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "tiempo_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "fecha",
+						"type": "date"
+					},
+					{
+						"name": "anio",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "mes",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "nombre_mes",
+						"type": "varchar"
+					},
+					{
+						"name": "trimestre",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "dia",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "dia_semana",
+						"type": "varchar"
+					},
+					{
+						"name": "es_fin_de_semana",
+						"type": "bit"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_tiempo"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold_hechos_control_pediatrico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dw_subsidio",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "gold"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "control_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id_nino",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "persona_id_madre",
+						"type": "int",
+						"precision": 10
 					},
 					{
 						"name": "establecimiento_id",
@@ -1078,81 +1160,37 @@
 						"precision": 10
 					},
 					{
-						"name": "fecha_inscripcion",
-						"type": "date"
-					},
-					{
-						"name": "semana_gestacion",
+						"name": "tiempo_id",
 						"type": "int",
 						"precision": 10
 					},
 					{
-						"name": "estado",
-						"type": "varchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "silver",
-					"table": "bja_inscripciones"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/dw_subsidio')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/silver_bja_pagos')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "dw_subsidio",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "silver"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "pago_id",
+						"name": "nro_control",
 						"type": "int",
 						"precision": 10
 					},
 					{
-						"name": "ci_beneficiaria",
-						"type": "varchar"
-					},
-					{
-						"name": "concepto_pago",
-						"type": "varchar"
-					},
-					{
-						"name": "monto_bs",
+						"name": "peso_nino_kg",
 						"type": "float",
 						"precision": 15
 					},
 					{
-						"name": "fecha_pago",
-						"type": "date"
+						"name": "talla_nino_cm",
+						"type": "float",
+						"precision": 15
 					},
 					{
-						"name": "estado_pago",
+						"name": "vacuna_aplicada",
 						"type": "varchar"
 					},
 					{
-						"name": "canal_pago",
-						"type": "varchar"
-					},
-					{
-						"name": "nro_comprobante",
+						"name": "resultado",
 						"type": "varchar"
 					}
 				],
 				"typeProperties": {
-					"schema": "silver",
-					"table": "bja_pagos"
+					"schema": "gold",
+					"table": "hechos_control_pediatrico"
 				}
 			},
 			"dependsOn": [
