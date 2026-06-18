@@ -17,6 +17,11 @@
 				"precision": 10
 			},
 			{
+				"name": "id_origen",
+				"type": "int",
+				"precision": 10
+			},
+			{
 				"name": "sistema",
 				"type": "varchar"
 			},

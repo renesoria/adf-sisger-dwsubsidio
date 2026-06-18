@@ -1,0 +1,72 @@
+{
+	"name": "df_gold_hechos_inscripcion",
+	"properties": {
+		"folder": {
+			"name": "gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_inscripciones",
+						"type": "DatasetReference"
+					},
+					"name": "srcInscripciones"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_hechos_inscripcion",
+						"type": "DatasetReference"
+					},
+					"name": "sinkHechosInscripcion"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          persona_id as integer,",
+				"          establecimiento_id as integer,",
+				"          tiempo_id as integer,",
+				"          sistema as string,",
+				"          semana_gestacion as integer,",
+				"          estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    dp.persona_id,\\n    de.establecimiento_id,\\n    dt.tiempo_id,\\n    i.sistema,\\n    i.semana_gestacion,\\n    i.estado\\nFROM (\\n    SELECT ci_beneficiaria, establecimiento_id, fecha_inscripcion, semana_gestacion, estado, \\'BJA\\' AS sistema\\n    FROM silver.bja_inscripciones\\n    UNION ALL\\n    SELECT ci_beneficiaria, establecimiento_id, fecha_inscripcion, semana_gestacion, estado, \\'SUP\\' AS sistema\\n    FROM silver.sup_inscripciones\\n) i\\nLEFT JOIN gold.dim_persona dp ON i.ci_beneficiaria = dp.ci\\nLEFT JOIN gold.dim_establecimiento de ON i.establecimiento_id = de.id_origen AND i.sistema = de.sistema\\nLEFT JOIN gold.dim_tiempo dt ON i.fecha_inscripcion = dt.fecha',",
+				"     format: 'query') ~> srcInscripciones",
+				"srcInscripciones sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          inscripcion_id as integer,",
+				"          persona_id as integer,",
+				"          establecimiento_id as integer,",
+				"          tiempo_id as integer,",
+				"          sistema as string,",
+				"          semana_gestacion as integer,",
+				"          estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          persona_id,",
+				"          establecimiento_id,",
+				"          tiempo_id,",
+				"          sistema,",
+				"          semana_gestacion,",
+				"          estado",
+				"     )) ~> sinkHechosInscripcion"
+			]
+		}
+	}
+}
