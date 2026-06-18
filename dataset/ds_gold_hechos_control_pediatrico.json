@@ -1,0 +1,68 @@
+{
+	"name": "ds_gold_hechos_control_pediatrico",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "dw_subsidio",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "gold"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "control_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "persona_id_nino",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "persona_id_madre",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "establecimiento_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "tiempo_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "nro_control",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "peso_nino_kg",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "talla_nino_cm",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "vacuna_aplicada",
+				"type": "varchar"
+			},
+			{
+				"name": "resultado",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "gold",
+			"table": "hechos_control_pediatrico"
+		}
+	}
+}

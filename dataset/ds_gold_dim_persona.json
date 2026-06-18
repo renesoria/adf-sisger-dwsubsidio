@@ -1,0 +1,62 @@
+{
+	"name": "ds_gold_dim_persona",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "dw_subsidio",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "gold"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "persona_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ci",
+				"type": "varchar"
+			},
+			{
+				"name": "nombres",
+				"type": "varchar"
+			},
+			{
+				"name": "ap_paterno",
+				"type": "varchar"
+			},
+			{
+				"name": "ap_materno",
+				"type": "varchar"
+			},
+			{
+				"name": "fecha_nac",
+				"type": "date"
+			},
+			{
+				"name": "edad",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "genero",
+				"type": "varchar"
+			},
+			{
+				"name": "estado_civil",
+				"type": "varchar"
+			},
+			{
+				"name": "municipio",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "gold",
+			"table": "dim_persona"
+		}
+	}
+}

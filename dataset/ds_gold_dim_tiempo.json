@@ -1,0 +1,61 @@
+{
+	"name": "ds_gold_dim_tiempo",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "dw_subsidio",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "gold"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "tiempo_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "fecha",
+				"type": "date"
+			},
+			{
+				"name": "anio",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "mes",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "nombre_mes",
+				"type": "varchar"
+			},
+			{
+				"name": "trimestre",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "dia",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "dia_semana",
+				"type": "varchar"
+			},
+			{
+				"name": "es_fin_de_semana",
+				"type": "bit"
+			}
+		],
+		"typeProperties": {
+			"schema": "gold",
+			"table": "dim_tiempo"
+		}
+	}
+}

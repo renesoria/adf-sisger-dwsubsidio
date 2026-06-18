@@ -1,0 +1,53 @@
+{
+	"name": "ds_gold_hechos_inscripcion",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "dw_subsidio",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "gold"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "inscripcion_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "persona_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "establecimiento_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "tiempo_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "sistema",
+				"type": "varchar"
+			},
+			{
+				"name": "semana_gestacion",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "estado",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "gold",
+			"table": "hechos_inscripcion"
+		}
+	}
+}
