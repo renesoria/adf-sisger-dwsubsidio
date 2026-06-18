@@ -1,0 +1,78 @@
+{
+	"name": "df_gold_dim_tiempo",
+	"properties": {
+		"folder": {
+			"name": "gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "silver_bja_partos",
+						"type": "DatasetReference"
+					},
+					"name": "srcTiempo"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_dim_tiempo",
+						"type": "DatasetReference"
+					},
+					"name": "sinkTiempo"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          fecha as date,",
+				"          anio as integer,",
+				"          mes as integer,",
+				"          nombre_mes as string,",
+				"          trimestre as integer,",
+				"          dia as integer,",
+				"          dia_semana as string,",
+				"          es_fin_de_semana as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    f.fecha,\\n    YEAR(f.fecha) AS anio,\\n    MONTH(f.fecha) AS mes,\\n    DATENAME(MONTH, f.fecha) AS nombre_mes,\\n    DATEPART(QUARTER, f.fecha) AS trimestre,\\n    DAY(f.fecha) AS dia,\\n    DATENAME(WEEKDAY, f.fecha) AS dia_semana,\\n    CASE WHEN DATEPART(WEEKDAY, f.fecha) IN (1,7) THEN 1 ELSE 0 END AS es_fin_de_semana\\nFROM (\\n    SELECT DISTINCT fecha_parto AS fecha FROM silver.bja_partos WHERE fecha_parto IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_control FROM silver.bja_controles_prenatales WHERE fecha_control IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_control FROM silver.bja_controles_pediatricos WHERE fecha_control IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_pago FROM silver.bja_pagos WHERE fecha_pago IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_inscripcion FROM silver.bja_inscripciones WHERE fecha_inscripcion IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_inscripcion FROM silver.sup_inscripciones WHERE fecha_inscripcion IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_control FROM silver.sup_controles WHERE fecha_control IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_emision FROM silver.sup_boletas WHERE fecha_emision IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_entrega FROM silver.sup_entregas WHERE fecha_entrega IS NOT NULL\\n    UNION\\n    SELECT DISTINCT fecha_proxima_entrega FROM silver.sup_entregas WHERE fecha_proxima_entrega IS NOT NULL\\n) f',",
+				"     format: 'query') ~> srcTiempo",
+				"srcTiempo sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          tiempo_id as integer,",
+				"          fecha as date,",
+				"          anio as integer,",
+				"          mes as integer,",
+				"          nombre_mes as string,",
+				"          trimestre as integer,",
+				"          dia as integer,",
+				"          dia_semana as string,",
+				"          es_fin_de_semana as boolean",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          fecha,",
+				"          anio,",
+				"          mes,",
+				"          nombre_mes,",
+				"          trimestre,",
+				"          dia,",
+				"          dia_semana,",
+				"          es_fin_de_semana",
+				"     )) ~> sinkTiempo"
+			]
+		}
+	}
+}
